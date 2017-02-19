@@ -20,10 +20,7 @@ public class TomTestOpMode extends LinearOpMode {
         // create a new object that represents our robot hardware.
         telemetry.addData("status", "creating new MavBot object...");
         telemetry.update();
-        mavbot = new MavBot();
-
-        // initialize our robot.
-        mavbot.initialize(hardwareMap);
+        mavbot = new MavBot(hardwareMap);
 
         // wait until driver pushes start button
         telemetry.addData("status", "Press start button to begin...");

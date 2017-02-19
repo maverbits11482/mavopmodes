@@ -13,33 +13,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public class MavBot {
 
     // Construction.
-    public MavBot() {
-
-    }
-
-    // Constants.
-    public static final String MOTOR_LEFT_NAME="motorLeft";
-    public static final String MOTOR_RIGHT_NAME="motorRight";
-    public static final DcMotor.RunMode DEFAULT_MOTOR_MODE = DcMotor.RunMode.RUN_WITHOUT_ENCODER;
-
-
-    // member variables
-    public DcMotor motorLeft;
-    public DcMotor motorRight;
-
-    // current drive mode.
-    public MavBotDriveMode currDriveMode;
-
-    // MavBot drive modes.
-    public enum MavBotDriveMode {
-        DRIVE_MODE_TANK,
-        DRIVE_MODE_POV
-    }
-
-    private HardwareMap hardwareMap;
-
-    // this method initializes and preconfigures the robot hardware.
-    public void initialize(HardwareMap origMap) {
+    // requires a hardwaremap as an argument.
+    public MavBot(HardwareMap origMap) {
         // get reference to the hardware map for this robot.
         // this reference should be passed as an argument in the initialize method.
         hardwareMap = origMap;
@@ -62,6 +37,27 @@ public class MavBot {
         // set default drive mode.
         currDriveMode = MavBotDriveMode.DRIVE_MODE_TANK;
     }
+
+    // Constants.
+    public static final String MOTOR_LEFT_NAME="motorLeft";
+    public static final String MOTOR_RIGHT_NAME="motorRight";
+    public static final DcMotor.RunMode DEFAULT_MOTOR_MODE = DcMotor.RunMode.RUN_WITHOUT_ENCODER;
+
+
+    // member variables
+    public DcMotor motorLeft;
+    public DcMotor motorRight;
+
+    // current drive mode.
+    public MavBotDriveMode currDriveMode;
+
+    // MavBot drive modes.
+    public enum MavBotDriveMode {
+        DRIVE_MODE_TANK,
+        DRIVE_MODE_POV
+    }
+
+    private HardwareMap hardwareMap;
 
     // this method processes game input and moves robot
     public void gamepadDrive(Gamepad gamepad) {
