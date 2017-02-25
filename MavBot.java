@@ -1,10 +1,14 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.ftccommon.DbgLog;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.RobotLog;
+
+import java.util.Locale;
 
 /**
  * Created by henry & tom on 2/19/17.
@@ -43,6 +47,18 @@ public class MavBot {
     public static final String MOTOR_RIGHT_NAME="motorRight";
     public static final DcMotor.RunMode DEFAULT_MOTOR_MODE = DcMotor.RunMode.RUN_WITHOUT_ENCODER;
 
+    public static final double MM_TO_IN= 25.4;
+    public static final double CM_TO_IN= 2.54;
+    public static final double FT_TO_IN= 12;
+    public static final double M_TO_IN= .0254;
+
+    // Wheel diameter in inches.
+    public static final double WHEEL_DIAMETER = 4.0;
+
+    // Encoder ticks per revolution.
+    public static final int ENCODER_TICKS__PER_REV = 1440;
+
+    public static String TAG = "MavBot";
 
     // member variables
     public DcMotor motorLeft;
@@ -57,6 +73,14 @@ public class MavBot {
         DRIVE_MODE_POV
     }
 
+    public enum DistanceUnit {
+        DISTANCE_MM,
+        DISTANCE_CM,
+        DISTANCE_M,
+        DISTANCE_IN,
+        DISTANCE_FT,
+    }
+
     private HardwareMap hardwareMap;
 
     // this method processes game input and moves robot
@@ -66,6 +90,60 @@ public class MavBot {
             motorRight.setPower(-gamepad.right_stick_y);
         }
 
+    }
+
+    public void measuredDrive (double distance, DistanceUnit unit, double targetPower){
+
+        // convert distance to inches.
+        double convertedDistance = 0;
+        switch(unit) {
+            case DISTANCE_MM:
+                convertedDistance = distance / MM_TO_IN;
+                break;
+            default:
+                // use distance.
+                convertedDistance = distance;
+                break;
+            case DISTANCE_CM:
+                convertedDistance = distance / CM_TO_IN;
+                break;
+            case DISTANCE_FT:
+                convertedDistance = distance * FT_TO_IN;
+                break;
+            case DISTANCE_M:
+                convertedDistance = distance / M_TO_IN;
+                break;
+        }
+
+        // convert distance into wheel revolutions.
+
+        double revs = 0;
+
+        revs = convertedDistance / (WHEEL_DIAMETER * Math.PI);
+
+        // convert revolutions into encoder ticks.
+
+        double encoderTicks = 0;
+
+        encoderTicks = revs * ENCODER_TICKS__PER_REV;
+        RobotLog.vv(TAG, String.format(Locale.getDefault(), "%d", (int)encoderTicks));
+
+        int leftTarget = motorLeft.getCurrentPosition() + (int)encoderTicks;
+        motorLeft.setTargetPosition(leftTarget);
+
+        int rightTarget = motorRight.getCurrentPosition() + (int)encoderTicks;
+        motorRight.setTargetPosition(rightTarget);
+
+        // To Do: Check for overflow.
+
+        RobotLog.vv(TAG, String.format(Locale.getDefault(), "%d", rightTarget));
+        RobotLog.vv(TAG, String.format(Locale.getDefault(), "%d", leftTarget));
+
+        motorLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        motorRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        motorLeft.setPower(targetPower);
+        motorRight.setPower(targetPower);
     }
 
 }
