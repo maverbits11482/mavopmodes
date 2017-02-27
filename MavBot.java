@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.robot.Robot;
 import com.qualcomm.robotcore.util.RobotLog;
 
 import java.util.Locale;
@@ -93,9 +94,14 @@ public class MavBot {
     }
 
     public void measuredDrive (double distance, DistanceUnit unit, double targetPower){
+        // local variables.
+        double convertedDistance = 0;
+        int leftCurrPos;
+        int rightCurrPos;
+        double revs = 0;
+        double encoderTicks = 0;
 
         // convert distance to inches.
-        double convertedDistance = 0;
         switch(unit) {
             case DISTANCE_MM:
                 convertedDistance = distance / MM_TO_IN;
@@ -116,25 +122,77 @@ public class MavBot {
         }
 
         // convert distance into wheel revolutions.
-
-        double revs = 0;
-
         revs = convertedDistance / (WHEEL_DIAMETER * Math.PI);
 
         // convert revolutions into encoder ticks.
-
-        double encoderTicks = 0;
-
         encoderTicks = revs * ENCODER_TICKS__PER_REV;
-        RobotLog.vv(TAG, String.format(Locale.getDefault(), "%d", (int)encoderTicks));
+        RobotLog.vv(TAG, String.format(Locale.getDefault(), "encoderTicks = %d", (int)encoderTicks));
 
-        int leftTarget = motorLeft.getCurrentPosition() + (int)encoderTicks;
-        motorLeft.setTargetPosition(leftTarget);
+        // get current position of left and right motors.
+        leftCurrPos = motorLeft.getCurrentPosition();
+        rightCurrPos = motorRight.getCurrentPosition();
+        RobotLog.vv(TAG, String.format(Locale.getDefault(), "leftCurrPos = %d", leftCurrPos));
+        RobotLog.vv(TAG, String.format(Locale.getDefault(), "rightCurrPos = %d", rightCurrPos));
+
+        // calculate target positions.
+        int leftTarget = leftCurrPos + (int)encoderTicks;
+        RobotLog.vv(TAG, String.format(Locale.getDefault(), "leftTarget = %d", leftTarget));
 
         int rightTarget = motorRight.getCurrentPosition() + (int)encoderTicks;
-        motorRight.setTargetPosition(rightTarget);
+        RobotLog.vv(TAG, String.format(Locale.getDefault(), "rightTarget = %d", rightTarget));
 
-        // To Do: Check for overflow.
+        if( encoderTicks > 0 && leftTarget < leftCurrPos)
+        {
+            // overflow detected.
+            RobotLog.ee(TAG, "measuredDrive: Encoder overflow detected!");
+
+            // reset motor encoder.
+            motorLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            RobotLog.ee(TAG, "measuredDrive: motorLeft encoder was reset.");
+
+            // recalculate target position.
+            leftTarget = motorLeft.getCurrentPosition() + (int)encoderTicks;
+
+        }
+        else if( encoderTicks > 0 && rightTarget < rightCurrPos)
+        {
+            // overflow detected.
+            RobotLog.ee(TAG, "measuredDrive: Encoder overflow detected!");
+
+            // reset motor encoder.
+            motorRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            RobotLog.ee(TAG, "measuredDrive: motorLeft encoder was reset.");
+
+            // recalculate target position.
+            rightTarget = motorLeft.getCurrentPosition() + (int)encoderTicks;
+        }
+        else if(encoderTicks < 0 && rightTarget > rightCurrPos)
+        {
+            // underflow detected.
+            RobotLog.ee(TAG, "measuredDrive: Encoder underflow detected!");
+
+            // to do: reset encoders and recalculate new target values.
+            motorRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            measuredDrive(distance, unit, targetPower);
+
+            // recalculate target position.
+            rightTarget = motorLeft.getCurrentPosition() + (int)encoderTicks;
+        }
+        else if (encoderTicks < 0 && leftTarget > leftCurrPos)
+        {
+            // underflow detected.
+            RobotLog.ee(TAG, "measuredDrive: Encoder underflow detected!");
+
+            // to do: reset encoders and recalculate new target values.
+            motorLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            measuredDrive(distance, unit, targetPower);
+
+            // recalculate target position.
+            leftTarget = motorLeft.getCurrentPosition() + (int)encoderTicks;
+        }
+
+        motorLeft.setTargetPosition(leftTarget);
+        motorRight.setTargetPosition(rightTarget);
 
         RobotLog.vv(TAG, String.format(Locale.getDefault(), "%d", rightTarget));
         RobotLog.vv(TAG, String.format(Locale.getDefault(), "%d", leftTarget));
