@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.ftccommon.DbgLog;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -16,13 +17,17 @@ import java.util.Locale;
  */
 
 public class MavBot {
+    OpMode currOpMode;
 
     // Construction.
     // requires a hardwaremap as an argument.
-    public MavBot(HardwareMap origMap) {
+    public MavBot(HardwareMap origMap,  OpMode tgtOpMode) {
         // get reference to the hardware map for this robot.
-        // this reference should be passed as an argument in the initialize method.
+        // this reference should be passed as an argument in the constructor.
         hardwareMap = origMap;
+
+        // get a reference to the op mode that is calling this constructor.
+        currOpMode = tgtOpMode;
 
         // get references to the motors
         motorLeft = hardwareMap.get(DcMotor.class, MOTOR_LEFT_NAME);
@@ -202,6 +207,27 @@ public class MavBot {
 
         motorLeft.setPower(targetPower);
         motorRight.setPower(targetPower);
+
+        boolean bExit = false;
+        while(motorLeft.isBusy() && motorRight.isBusy() && !bExit){
+            currOpMode.telemetry.addData("Status", "measuredDrive... running to position");
+
+
+            // left and right power and position.
+
+            currOpMode.telemetry.update();
+
+            try {
+                // sleep for a moment.
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                // if asked to do something, stop op mode.
+                RobotLog.vv(TAG, "measuredDrive - InterruptedException received while running to position.");
+                bExit = true;
+            }
+
+
+        }
     }
 
 }

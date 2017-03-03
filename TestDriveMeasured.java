@@ -10,12 +10,15 @@ import com.qualcomm.robotcore.robocol.PeerApp;
 
 @TeleOp(name = "TestDriveMeasured", group="maverbits")
 public class TestDriveMeasured extends LinearOpMode {
+    MavBot myRobot;
     public void runOpMode() {
 
-        MavBot myRobot = new MavBot(hardwareMap);
+        myRobot = new MavBot(hardwareMap, this);
 
         waitForStart();
 
+        myRobot.measuredDrive(-12, MavBot.DistanceUnit.DISTANCE_IN, -.2);
+        sleep(5000);
         myRobot.measuredDrive(12, MavBot.DistanceUnit.DISTANCE_IN, .2);
 
         while(opModeIsActive()) {
