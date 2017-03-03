@@ -228,6 +228,8 @@ public class MavBot {
 
 
         }
+        motorLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
 }

@@ -55,8 +55,8 @@ public class SquareTurn extends LinearOpMode{
         initHeading = gyro.getIntegratedZValue();
         totalHeading = 0;
         while(totalHeading < 90){
-            mavbot.motorLeft.setPower(.4);
-            mavbot.motorRight.setPower(0);
+            mavbot.motorLeft.setPower(-0.2);
+            mavbot.motorRight.setPower(0.2);
             totalHeading = gyro.getIntegratedZValue() - initHeading;
             refreshTelemetry();
         }
